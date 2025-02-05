@@ -2,17 +2,24 @@ package weather
 
 import (
 	"GoHTTP/app/geo"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 )
 
-func GetWeather(geo geo.GeoData, format int) string {
+var ErrorIncorrectFormat = errors.New("INCORRECT_FORMAT")
+
+func GetWeather(geo geo.GeoData, format int) (string, error) {
+	if format > 4 || format < 1 {
+		fmt.Println(ErrorIncorrectFormat.Error())
+		return "", ErrorIncorrectFormat
+	}
 	baseUrl, err := url.Parse("https://wttr.in/" + geo.City)
 	if err != nil {
 		fmt.Println(err.Error())
-		return ""
+		return "", err
 	}
 	params := url.Values{}
 	params.Add("format", fmt.Sprint(format))
@@ -20,12 +27,12 @@ func GetWeather(geo geo.GeoData, format int) string {
 	resp, err := http.Get(baseUrl.String())
 	if err != nil {
 		fmt.Println(err.Error())
-		return ""
+		return "", err
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Println(err.Error())
-		return ""
+		return "", err
 	}
-	return string(body)
+	return string(body), nil
 }

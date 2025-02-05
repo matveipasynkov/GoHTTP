@@ -16,6 +16,9 @@ type CityPopulationResponce struct {
 	Error bool `json:"error"`
 }
 
+var ErrorNoCity = errors.New("NOCITY")
+var ErrorNot200 = errors.New("NOT200")
+
 func GetMyLocation(city string) (*GeoData, error) {
 	if city != "" {
 		isCity := checkCity(city)
@@ -24,14 +27,14 @@ func GetMyLocation(city string) (*GeoData, error) {
 				City: city,
 			}, nil
 		}
-		panic("Такого города нет.")
+		return nil, ErrorNoCity
 	}
 	resp, err := http.Get("https://ipapi.co/json/")
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, errors.New("NOT200")
+		return nil, ErrorNot200
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
